@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 import threading
 
-# from adafruit_servokit import ServoKit
+from adafruit_servokit import ServoKit
 from time import sleep
 
 # Config.set('graphics', 'fullscreen', 'true')
@@ -21,7 +21,7 @@ Config.set('graphics', 'width', '1066')
 Config.set('graphics', 'height', '768')
 
 
-# kit=ServoKit(channels=16)
+kit=ServoKit(channels=16)
 
 class CameraThread(threading.Thread):
     def __init__(self):
@@ -32,6 +32,8 @@ class CameraThread(threading.Thread):
     def run(self):
         self.running = True
         cap = cv2.VideoCapture(0)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640) 
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         while self.running:
             ret, frame = cap.read()
             if ret:
@@ -77,65 +79,6 @@ class CameraThread(threading.Thread):
     def stop(self):
         self.running = False
 
-"""class CameraWidget(Image):
-    def __init__(self, **kwargs):
-        super(CameraWidget, self).__init__(**kwargs)
-        self.capture = cv2.VideoCapture(0)  # Assurez-vous que l'indice de votre caméra est correct
-        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-        Clock.schedule_interval(self.update, 1.0 / 30)
-
-    def update(self, *args):
-        ret, frame = self.capture.read()
-        if ret:
-
-            # Rotation de la frame de 90 degrés
-            (h, w) = frame.shape[:2]  # obtenir les dimensions de l'image
-            center = (w // 2, h // 2)  # trouver le centre de l'image
-
-            # Calculer la matrice de rotation pour tourner l'image de 90 degrés autour du centre sans échelle
-            M = cv2.getRotationMatrix2D(center, 90, 1.0)
-
-            # Appliquer la rotation
-            frame = cv2.warpAffine(frame, M, (w, h))
-            # Convertir l'image BGR en HSV
-            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-            # Définir la plage de couleur rouge dans HSV
-            lower_red = np.array([0, 120, 120])
-            upper_red = np.array([10, 255, 255])
-            mask1 = cv2.inRange(hsv, lower_red, upper_red)
-
-            lower_red = np.array([170, 120, 120])
-            upper_red = np.array([180, 255, 255])
-            mask2 = cv2.inRange(hsv, lower_red, upper_red)
-
-            # Combinaison des deux masques pour obtenir le masque final de la couleur rouge
-            mask = mask1 + mask2
-
-            # Trouver les contours dans le masque
-            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            if contours:
-                # Trouver le plus grand contour en fonction de l'aire et calculer son centre
-                largest_contour = max(contours, key=cv2.contourArea)
-                M = cv2.moments(largest_contour)
-                if M["m00"] != 0:
-                    cX = int(M["m10"] / M["m00"])
-                    cY = int(M["m01"] / M["m00"])
-                    # Dessiner un cercle au centre du contour
-                    cv2.circle(frame, (cX, cY), 5, (255, 255, 255), -1)  # Rayon augmenté pour plus de visibilité
-
-            # Affichage de l'image avec le point central de la tache rouge
-            buf1 = cv2.flip(frame, 0)
-            buf = buf1.tostring()
-            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
-            texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
-            self.texture = texture
-
-    def on_stop(self):
-        self.capture.release()
-"""
 
 class RobotInterfaceApp(App):
 
@@ -146,20 +89,14 @@ class RobotInterfaceApp(App):
     def build(self):
         main_layout = BoxLayout(orientation='horizontal')
 
-        # Layout pour les actions IA
-        ia_actions_layout = GridLayout(cols=2, spacing=10, padding=20, size_hint=(0.3, 1))
+        ia_actions_layout = GridLayout(cols=2, spacing=10, padding=10, size_hint=(0.3, 1))
         actions = [
-            ("Administrer", "admin.png"),
-            ("Nettoyer plaie", "clean.png"),
-            ("Saluer", "greet.png"),
-            ("Scanner", "scan.png"),
-            ("Détection d'objet", "detect.png"),
-            ("Exploration", "explore.png")]
-
-        for action, icon in actions:
-            btn = Button(text=action, background_normal='', background_color=(0, 0.7, 1, 1))
-            # btn.bind(on_press=self.execute_ia_action)
-            btn.background_normal = icon
+            "Administrer", "Nettoyer plaie",
+            "Saluer", "Scanner", "Détection d'objet", "Exploration"
+        ]
+        for action in actions:
+            btn = Button(text=action)
+            btn.bind(on_press=self.execute_ia_action)
             ia_actions_layout.add_widget(btn)
 
         manual_controls_layout = BoxLayout(orientation='vertical', size_hint=(0.7, 1))
@@ -183,7 +120,7 @@ class RobotInterfaceApp(App):
         print("returned the mainlayout")
         return main_layout
 
-    """def execute_ia_action(self, instance):
+    def execute_ia_action(self, instance):
         print(f"Executing IA action: {instance.text}")
         if instance.text == "Saluer":
             sleep(3)
@@ -254,13 +191,13 @@ class RobotInterfaceApp(App):
             kit.servo[1].angle_position = 84
             sleep(2)
             kit.servo[5].angle_ = 40
-        """
+        
 
     def update_servo_angle(self, instance, value, lbl, index):
         lbl.text = f"{int(value)}°"
         # Assuming each slider corresponds to a servo (e.g., 0 to 4). Adjust the index as needed.
         servo_index = index  # Update this if you have a specific mapping of sliders to servos
-        # kit.servo[servo_index].angle = int(value)
+        kit.servo[servo_index].angle = int(value)
 
     def on_start(self):
         self.camera_thread.start()
