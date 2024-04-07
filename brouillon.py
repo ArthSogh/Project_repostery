@@ -146,14 +146,20 @@ class RobotInterfaceApp(App):
     def build(self):
         main_layout = BoxLayout(orientation='horizontal')
 
-        ia_actions_layout = GridLayout(cols=2, spacing=10, padding=10, size_hint=(0.3, 1))
+        # Layout pour les actions IA
+        ia_actions_layout = GridLayout(cols=2, spacing=10, padding=20, size_hint=(0.3, 1))
         actions = [
-            "Administrer", "Nettoyer plaie",
-            "Saluer", "Scanner", "Détection d'objet", "Exploration"
-        ]
-        for action in actions:
-            btn = Button(text=action)
+            ("Administrer", "admin.png"),
+            ("Nettoyer plaie", "clean.png"),
+            ("Saluer", "greet.png"),
+            ("Scanner", "scan.png"),
+            ("Détection d'objet", "detect.png"),
+            ("Exploration", "explore.png")]
+
+        for action, icon in actions:
+            btn = Button(text=action, background_normal='', background_color=(0, 0.7, 1, 1))
             # btn.bind(on_press=self.execute_ia_action)
+            btn.background_normal = icon
             ia_actions_layout.add_widget(btn)
 
         manual_controls_layout = BoxLayout(orientation='vertical', size_hint=(0.7, 1))
