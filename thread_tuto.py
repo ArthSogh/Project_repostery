@@ -18,6 +18,7 @@ import cv2
 import numpy as np
 import threading
 
+from ERA import inverseKinematics
 # from adafruit_servokit import ServoKit
 from time import sleep
 
@@ -226,22 +227,13 @@ class RobotInterfaceApp(App):
 
         if instance.text == "Exploration":
             self.show_exploration_popup()
-            sleep(2)
-            # kit.servo[0].angle_position = 45
+            # sleep(4)
+            # kit.servo[0].angle_position = 90
+            # kit.servo[1].angle_position = 90 - theta1
+            # kit.servo[2].angle_position = theta2
+            # kit.servo[3].angle_position = theta3
             # sleep(1)
-            # kit.servo[4].angle_position = 81
-            # sleep(1)
-            # kit.servo[3].angle_position = 30
-            # sleep(1)
-            # kit.servo[1].angle_position = 50
-            # kit.servo[2].angle_position = 45
-            # sleep(1)
-            # kit.servo[1].angle_position = 33
-            # kit.servo[2].angle_position = 36
-            # sleep(1)
-            # kit.servo[1].angle_position = 10
-            # sleep(5)
-            # kit.servo[5].angle_position = 10
+
 
         if instance.text == "Détection d'objet":
             sleep(2)
@@ -293,22 +285,23 @@ class RobotInterfaceApp(App):
         instructions_button.bind(on_release=popup.dismiss)
         popup.open()
 
-    from kivy.uix.popup import Popup
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.uix.label import Label
-    from kivy.uix.textinput import TextInput
-    from kivy.uix.button import Button
-
     def show_exploration_popup(self):
         # Fonction pour valider les entrées et fermer le popup
         def validate_inputs(instance):
             # Récupération des valeurs entrées
-            x_value = x_input.text
-            y_value = y_input.text
-            z_value = z_input.text
+            x_value = int(x_input.text)
+            y_value = int(y_input.text)
+            z_value = int(z_input.text)
 
             # Traiter les valeurs ici...
-
+            retour = inverseKinematics(x_value, y_value, z_value)
+            print(retour)
+            # sleep(4)
+            # kit.servo[0].angle_position = 90
+            # kit.servo[1].angle_position = retour(0)
+            # kit.servo[2].angle_position = retour(1)
+            # kit.servo[3].angle_position = retour(2)
+            # sleep(1)
             # Fermer le popup
             popup.dismiss()
 
