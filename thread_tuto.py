@@ -5,11 +5,13 @@ from kivy.uix.popup import Popup
 from kivy.uix.slider import Slider
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle, Rectangle
 from kivy.graphics.texture import Texture
 from kivy.config import Config
 from kivy.uix.image import Image
+from kivy.properties import NumericProperty
 
 from kivy.core.window import Window
 import cv2
@@ -22,10 +24,12 @@ Config.set('graphics', 'height', '768')
 
 
 class CameraThread(threading.Thread):
+
     def __init__(self):
         super(CameraThread, self).__init__()
         self.running = False
         print("Name of the current thread :", threading.current_thread().name)
+        red_percentage = NumericProperty(0)
 
     def run(self):
         self.running = True
@@ -63,6 +67,19 @@ class CameraThread(threading.Thread):
                         cY = int(M["m01"] / M["m00"])
                         cv2.circle(frame, (cX, cY), 5, (255, 255, 255), -1)
 
+                        # Calcul du pourcentage de rouge dans le contour
+                        contour_mask = np.zeros_like(mask)
+                        cv2.drawContours(contour_mask, [largest_contour], 0, (255), -1)
+                        red_pixels = np.sum(np.logical_and(contour_mask, mask))
+                        contour_area = cv2.contourArea(largest_contour)
+                        percentage_red = (red_pixels / contour_area) * 100
+                        print("Pourcentage de rouge dans le contour: {:.2f}%".format(percentage_red))
+                        self.red_percentage = percentage_red  # Met à jour la propriété NumericProperty
+
+                        cv2.drawContours(frame, [largest_contour], -1, (0, 255, 0), 2)
+                        if 70 <= self.red_percentage <= 100:
+                            print("HEMORAGIEEEEEEEEEEE")
+
                 buf1 = cv2.flip(frame, 0)
                 buf = buf1.tobytes()
                 texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
@@ -78,6 +95,11 @@ class CameraThread(threading.Thread):
     def stop(self):
         self.running = False
 
+    def show_popup(self):
+        popup = Popup(title='Alerte',
+                      content=Label(text='Le pourcentage de rouge est entre 70% et 100%.'),
+                      size_hint=(None, None), size=(400, 200))
+        popup.open()
 
 class RobotInterfaceApp(App):
 
@@ -98,7 +120,7 @@ class RobotInterfaceApp(App):
                                   )
 
         # Ajouter une image à la place du label "logo"
-        image = Image(source='arm_b.png', size_hint=(1, 1), height=100)
+        image = Image(source='logo_tr.png', size_hint=(1, 4), height=100)
         main_layout.add_widget(image)
 
         # text = Label(text="logo")
@@ -117,7 +139,7 @@ class RobotInterfaceApp(App):
             btn = Button(text=action,
                          background_normal='',
                          background_color=(48/255, 84/255, 150/255, 1),
-                         size_hint=(0.5, 0.5),
+                         size_hint=(0.5, 0.9),
                          pos_hint ={'x':1, 'y':.2}
                          )
             # btn.background_normal = icon
@@ -134,21 +156,21 @@ class RobotInterfaceApp(App):
         # Layout pour les sliders et leurs numéros
         slider_layout = GridLayout(cols=2, spacing=10, padding=5, size_hint=(1, None), height=300)
         for i in range(6):
-            # Label pour afficher le numéro du slider
-            label = Label(markup=True,
-                          text=f"[b]{i}[/b]",
-                          size_hint=(0.05, None),
-                          height=30,
-                          outline_color =(48/255, 84/255, 150/255, 1))
-
-            slider_layout.add_widget(label)
-
             # Slider
             slider = Slider(min=0, max=180,
                             value_track=True,
                             value_track_color =(48/255, 84/255, 150/255, 1),
                             value=45,
                             orientation='horizontal')
+
+            # Label pour afficher le numéro du slider
+            label = Label(markup=True,
+                          text=f"[b]{i}[/b] - {slider.value}",
+                          size_hint=(0.05, None),
+                          height=30,
+                          outline_color =(48/255, 84/255, 150/255, 1))
+
+            slider_layout.add_widget(label)
 
             slider.bind(value=self.on_slider_change)
             slider_layout.add_widget(slider)
@@ -158,7 +180,86 @@ class RobotInterfaceApp(App):
         return main_layout
 
     def on_button_press(self, instance):
-        print(f"Button '{instance.text}' pressed")
+        if instance.text == "Administrer":
+            self.show_administration_popup()
+
+        if instance.text == "Scanner":
+            self.hemoragie_popup()
+
+        if instance.text == "Exploration":
+            self.show_exploration_popup()
+
+        else:
+            print(f"Button '{instance.text}' pressed")
+
+    def show_administration_popup(self):
+        popup = Popup(title='Administration Réalisée',
+                      content=Label(text='Administration Réalisée'),
+                      size_hint=(None, None), size=(400, 200))
+        popup.open()
+
+    def hemoragie_popup(self):
+        content_text = "Hémorragie 60% ! SUIVRE INSTRUCTIONS !"
+        content = Label(text=content_text, font_size=16, halign='center', valign='middle')
+
+        instructions_button = Button(text="Instructions", size_hint=(1, 0.2))
+        instructions_button.background_color = (1, 0, 0, 1)  # Couleur rouge vive
+
+        popup_content = BoxLayout(orientation='vertical')
+        popup_content.add_widget(content)
+        popup_content.add_widget(instructions_button)
+
+        popup = Popup(title='Alerte', title_color=(1, 0, 0, 1),  # Couleur rouge vive
+                      content=popup_content,
+                      size_hint=(None, None), size=(400, 200))
+
+        instructions_button.bind(on_release=popup.dismiss)
+        popup.open()
+
+    from kivy.uix.popup import Popup
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.label import Label
+    from kivy.uix.textinput import TextInput
+    from kivy.uix.button import Button
+
+    def show_exploration_popup(self):
+        # Fonction pour valider les entrées et fermer le popup
+        def validate_inputs(instance):
+            # Récupération des valeurs entrées
+            x_value = x_input.text
+            y_value = y_input.text
+            z_value = z_input.text
+
+            # Traiter les valeurs ici...
+
+            # Fermer le popup
+            popup.dismiss()
+
+        # Création des widgets du popup
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text="Vous êtes sur le point d'utiliser la cinématique inverse."))
+        content.add_widget(Label(text="Veuillez entrer les valeurs X, Y et Z:"))
+
+        x_input = TextInput(multiline=False, hint_text="X")
+        y_input = TextInput(multiline=False, hint_text="Y")
+        z_input = TextInput(multiline=False, hint_text="Z")
+
+        content.add_widget(x_input)
+        content.add_widget(y_input)
+        content.add_widget(z_input)
+
+        # Bouton de validation
+        validate_button = Button(text="Valider", size_hint=(1, 0.2))
+        validate_button.bind(on_release=validate_inputs)
+        content.add_widget(validate_button)
+
+        # Création du popup
+        popup = Popup(title='Exploration',
+                      content=content,
+                      size_hint=(None, None), size=(400, 250))
+
+        # Afficher le popup
+        popup.open()
 
     def on_slider_change(self, instance, value):
         print(f"Slider value changed: {value}")
@@ -168,6 +269,7 @@ class RobotInterfaceApp(App):
 
     def on_stop(self):
         self.camera_thread.stop()
+
 
 
 if __name__ == '__main__':
