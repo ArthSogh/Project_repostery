@@ -83,8 +83,8 @@ class RobotInterfaceApp(App):
 
         ia_actions_layout = GridLayout(cols=2, spacing=10, padding=10, size_hint=(0.3, 1))
         actions = [
-            "Administrer", "Nettoyer plaie",
-            "Saluer", "Scanner", "Détection d'objet", "Exploration"
+            "Administrer", "Rapatriement",
+            "Initial", "Scanner", "Détection d'objet", "Exploration"
         ]
         for action in actions:
             btn = Button(text=action)
@@ -111,7 +111,7 @@ class RobotInterfaceApp(App):
 
     def execute_ia_action(self, instance):
         print(f"Executing IA action: {instance.text}")
-        if instance.text == "Saluer":
+        if instance.text == "Initial":
             sleep(3)
             L_saluer = [(0,84),(1,110),(2,45),(3,66),(4,86),(5,117)]
             for i in L_saluer:
@@ -160,9 +160,10 @@ class RobotInterfaceApp(App):
             kit.servo[1].angle_position = 75
             kit.servo[5].angle_position = 20
             sleep(1)
-            kit.servo[3].angle_position = 20
+            kit.servo[3].angle_position = 5
+            kit.servo[2].angle_position = 10
             kit.servo[5].angle_position = 160
-            sleep(1)
+            sleep(1.5)
             kit.servo[1].angle_position = 120
             kit.servo[3].angle_position = 44
             sleep(2)
@@ -170,16 +171,27 @@ class RobotInterfaceApp(App):
             kit.servo[4].angle_position = 117
             kit.servo[1].angle_position = 99
             kit.servo[2].angle_position = 72
-            kit.servo[1].angle_position = 65
+            kit.servo[1].angle_position = 60
             sleep(5)
+            L_saluer = [(0,82),(1,110),(2,45),(3,66),(4,86),(5,117)]
+            for i in L_saluer:
+                if i[0] == 1 or i[0] == 2:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 1750)
+                else:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 2500)
+                kit.servo[i[0]].angle_position = i[1]
+            print(L_saluer)
             
-        if instance.text == "Nettoyer plaie":
+        if instance.text == "Rapatriement":
+            #kit.servo[0].angle_position = 80
             sleep(3)
-            kit.servo[3].angle_position = 32
-            sleep(2)
-            kit.servo[1].angle_position = 84
-            sleep(2)
-            kit.servo[5].angle_ = 40
+            kit.servo[3].angle_position = 16
+            sleep(1)
+            kit.servo[1].angle_position = 79
+            sleep(1)
+            kit.servo[3].angle_position = 45
+            sleep(0.5)
+            kit.servo[5].angle_position = 0
             
             
 
