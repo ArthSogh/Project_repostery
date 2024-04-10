@@ -18,10 +18,14 @@ import cv2
 import numpy as np
 import threading
 
+# from adafruit_servokit import ServoKit
+from time import sleep
+
 # Config.set('graphics', 'fullscreen', 'true')
 Config.set('graphics', 'width', '1066')
 Config.set('graphics', 'height', '768')
 
+# kit=ServoKit(channels=16)
 
 class CameraThread(threading.Thread):
 
@@ -172,7 +176,11 @@ class RobotInterfaceApp(App):
 
             slider_layout.add_widget(label)
 
-            slider.bind(value=self.on_slider_change)
+            slider.bind(value=lambda instance,
+                                     value,
+                                     lbl=label,
+                                     index=i: self.on_slider_change(instance, value, lbl, index))
+
             slider_layout.add_widget(slider)
 
         main_layout.add_widget(slider_layout)
@@ -181,13 +189,82 @@ class RobotInterfaceApp(App):
 
     def on_button_press(self, instance):
         if instance.text == "Administrer":
+            sleep(1)
+            # kit.servo[1].angle_position = 75
+            # kit.servo[5].angle_position = 20
+            # sleep(1)
+            # kit.servo[3].angle_position = 20
+            # kit.servo[5].angle_position = 160
+            # sleep(1)
+            # kit.servo[1].angle_position = 120
+            # kit.servo[3].angle_position = 44
+            # sleep(2)
+            # kit.servo[0].angle_position = 140
+            # kit.servo[4].angle_position = 117
+            # kit.servo[1].angle_position = 99
+            # kit.servo[2].angle_position = 72
+            # kit.servo[1].angle_position = 65
+            sleep(5)
             self.show_administration_popup()
 
         if instance.text == "Scanner":
             self.hemoragie_popup()
 
+        if instance.text == "Saluer":
+            sleep(3)
+            L_saluer = [(0, 84), (1, 110), (2, 45), (3, 66), (4, 86), (5, 117)]
+            # for i in L_saluer:
+            #     if i[0] == 1 or i[0] == 2:
+            #         kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=1750)
+            #     else:
+            #         kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=2500)
+            #     kit.servo[i[0]].angle_position = i[1]
+            # print(L_saluer)
+
+            valeur_des_angles = ((0, 84), (1, 110), (2, 45), (3, 66), (4, 86), (5, 117))
+
+
         if instance.text == "Exploration":
             self.show_exploration_popup()
+            sleep(2)
+            # kit.servo[0].angle_position = 45
+            # sleep(1)
+            # kit.servo[4].angle_position = 81
+            # sleep(1)
+            # kit.servo[3].angle_position = 30
+            # sleep(1)
+            # kit.servo[1].angle_position = 50
+            # kit.servo[2].angle_position = 45
+            # sleep(1)
+            # kit.servo[1].angle_position = 33
+            # kit.servo[2].angle_position = 36
+            # sleep(1)
+            # kit.servo[1].angle_position = 10
+            # sleep(5)
+            # kit.servo[5].angle_position = 10
+
+        if instance.text == "Détection d'objet":
+            sleep(2)
+            # kit.servo[0].angle_position = 0
+            # kit.servo[4].angle_position = 81
+            # kit.servo[5].angle_position = 70
+            # kit.servo[3].angle_position = 30
+            # kit.servo[1].angle_position = 50
+            # kit.servo[2].angle_position = 45
+            # kit.servo[1].angle_position = 33
+            # kit.servo[2].angle_position = 36
+            # sleep(1)
+            # kit.servo[1].angle_position = 20
+            # sleep(5)
+            # kit.servo[5].angle_position = 170
+
+        if instance.text == "Nettoyer plaie":
+            sleep(3)
+            # kit.servo[3].angle_position = 32
+            # sleep(2)
+            # kit.servo[1].angle_position = 84
+            # sleep(2)
+            # kit.servo[5].angle_ = 40
 
         else:
             print(f"Button '{instance.text}' pressed")
@@ -261,8 +338,13 @@ class RobotInterfaceApp(App):
         # Afficher le popup
         popup.open()
 
-    def on_slider_change(self, instance, value):
+    def on_slider_change(self, instance, value, lbl, index):
         print(f"Slider value changed: {value}")
+        lbl.text = f"{int(value)}°"
+        # Assuming each slider corresponds to a servo (e.g., 0 to 4). Adjust the index as needed.
+        servo_index = index  # Update this if you have a specific mapping of sliders to servos
+        # kit.servo[servo_index].angle = int(value)
+
 
     def on_start(self):
         self.camera_thread.start()
