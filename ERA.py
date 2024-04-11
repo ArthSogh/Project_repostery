@@ -53,8 +53,9 @@ def inverseKinematics(x, y, z):
           "Theta 3: ", theta3, "    ",
           "Delta: ", delta, "    ",
           "X2: ", x2)
-
-    return((90 - theta1,theta2, theta3, delta))
+    L = [90 - theta1,theta2, theta3, delta]
+    
+    return L
 
 # Exemple d'utilisation de la fonction
 # inverseKinematics(170, 0, 230)  # Remplacer les valeurs par les coordonnées désirées

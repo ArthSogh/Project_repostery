@@ -19,14 +19,15 @@ import numpy as np
 import threading
 
 from ERA import inverseKinematics
-# from adafruit_servokit import ServoKit
+from adafruit_servokit import ServoKit
+from adafruit_motor.servo import Servo
 from time import sleep
 
 # Config.set('graphics', 'fullscreen', 'true')
 Config.set('graphics', 'width', '1066')
 Config.set('graphics', 'height', '768')
 
-# kit=ServoKit(channels=16)
+kit=ServoKit(channels=16)
 
 class CameraThread(threading.Thread):
 
@@ -39,7 +40,6 @@ class CameraThread(threading.Thread):
     def run(self):
         self.running = True
         cap = cv2.VideoCapture(0)
-        # Modifier la résolution de capture vidéo
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Largeur de la frame
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)  # Hauteur de la frame
         while self.running:
@@ -48,7 +48,7 @@ class CameraThread(threading.Thread):
                 # Rotation de la frame de 90 degrés
                 (h, w) = frame.shape[:2]
                 center = (w // 2, h // 2)
-                M = cv2.getRotationMatrix2D(center, 0, 1.0)
+                M = cv2.getRotationMatrix2D(center, 90, 1.0)
                 frame = cv2.warpAffine(frame, M, (w, h))
 
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -78,12 +78,16 @@ class CameraThread(threading.Thread):
                         red_pixels = np.sum(np.logical_and(contour_mask, mask))
                         contour_area = cv2.contourArea(largest_contour)
                         percentage_red = (red_pixels / contour_area) * 100
-                        print("Pourcentage de rouge dans le contour: {:.2f}%".format(percentage_red))
                         self.red_percentage = percentage_red  # Met à jour la propriété NumericProperty
 
                         cv2.drawContours(frame, [largest_contour], -1, (0, 255, 0), 2)
-                        if 70 <= self.red_percentage <= 100:
-                            print("HEMORAGIEEEEEEEEEEE")
+                        if 0 <= self.red_percentage <= 70:
+                            print(f"Blood detected - {self.red_percentage}%")
+                            
+                        elif 70 <= self.red_percentage <= 100:
+                            print(f"HEMORRAGIEEEEEEEEEEE - {self.red_percentage}%")
+                            #ICI APPELLE LA FONCTION hemoragie_popup()
+
 
                 buf1 = cv2.flip(frame, 0)
                 buf = buf1.tobytes()
@@ -113,13 +117,11 @@ class RobotInterfaceApp(App):
         self.camera_thread = CameraThread()
 
     def build(self):
-        # Window.clearcolor = (0.4,0.4,1,1)
         # Window.clearcolor = (1,1,1,1)
         main_layout = BoxLayout(orientation='vertical', padding=5, spacing=5)
 
         # Layout pour les boutons en haut de l'interface
         button_layout = BoxLayout(orientation='horizontal',
-                                  # size_hint=(1, 0.5),
                                   height=70,
                                   padding=5, spacing=10
                                   )
@@ -127,10 +129,6 @@ class RobotInterfaceApp(App):
         # Ajouter une image à la place du label "logo"
         image = Image(source='logo_tr.png', size_hint=(1, 4), height=100)
         main_layout.add_widget(image)
-
-        # text = Label(text="logo")
-        # main_layout.add_widget(text)
-
 
         actions = [
             "Administrer",
@@ -190,73 +188,158 @@ class RobotInterfaceApp(App):
 
     def on_button_press(self, instance):
         if instance.text == "Administrer":
+            L_saluer = [(0,82),(1,110),(2,45),(3,66),(4,86),(5,117)]
+            for i in L_saluer:
+                if i[0] == 1 or i[0] == 2:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 1750)
+                else:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 2500)
+                kit.servo[i[0]].angle_position = i[1]
+            print(L_saluer)
             sleep(1)
-            # kit.servo[1].angle_position = 75
-            # kit.servo[5].angle_position = 20
-            # sleep(1)
-            # kit.servo[3].angle_position = 20
-            # kit.servo[5].angle_position = 160
-            # sleep(1)
-            # kit.servo[1].angle_position = 120
-            # kit.servo[3].angle_position = 44
-            # sleep(2)
-            # kit.servo[0].angle_position = 140
-            # kit.servo[4].angle_position = 117
-            # kit.servo[1].angle_position = 99
-            # kit.servo[2].angle_position = 72
-            # kit.servo[1].angle_position = 65
+            kit.servo[1].angle_position = 75
+            kit.servo[5].angle_position = 20
+            sleep(1)
+            kit.servo[3].angle_position = 5
+            kit.servo[2].angle_position = 10
+            kit.servo[5].angle_position = 160
+            sleep(1.5)
+            kit.servo[1].angle_position = 120
+            kit.servo[3].angle_position = 44
+            sleep(2)
+            kit.servo[0].angle_position = 140
+            kit.servo[4].angle_position = 117
+            kit.servo[1].angle_position = 99
+            kit.servo[2].angle_position = 72
+            kit.servo[1].angle_position = 60
             sleep(5)
+            L_saluer = [(0,82),(1,110),(2,45),(3,66),(4,86),(5,117)]
+            for i in L_saluer:
+                if i[0] == 1 or i[0] == 2:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 1750)
+                else:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 2500)
+                kit.servo[i[0]].angle_position = i[1]
+            print(L_saluer)
+            #kit.servo[0].angle_position = 80
+            sleep(1)
+            kit.servo[3].angle_position = 16
+            sleep(1)
+            kit.servo[1].angle_position = 79
+            sleep(1)
+            kit.servo[3].angle_position = 45
+            sleep(0.5)
+            kit.servo[5].angle_position = 0
+            
             self.show_administration_popup()
 
         if instance.text == "Scanner":
+            # servo = Servo(pwm)
+            # servo.step = 0.05
+            self.camera_thread.start()
+            sleep(4)
+            L_saluer = [(0, 84), (1, 110), (2, 45), (3, 66), (4, 86), (5, 117)]
+            for i in L_saluer:
+                 if i[0] == 1 or i[0] == 2:
+                     kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=1750)
+                 else:
+                     kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=2500)
+                 kit.servo[i[0]].angle_position = i[1]
+            print(L_saluer)
+            kit.servo[0].angle_position = 157
+            kit.servo[1].angle_position = 110
+            kit.servo[2].angle_position = 20
+            kit.servo[3].angle_position = 83
+            sleep(1)
+            kit.servo[0].angle_position = 175
+            sleep(0.1)
+            kit.servo[0].angle_position = 170
+            sleep(0.1)
+            kit.servo[0].angle_position = 165
+            sleep(0.1)
+            kit.servo[0].angle_position = 160
+            sleep(0.1)
+            kit.servo[0].angle_position = 155
+            sleep(0.1)
+            kit.servo[0].angle_position = 150
+            sleep(0.1)
+            kit.servo[0].angle_position = 145
+            sleep(0.1)
+            kit.servo[0].angle_position = 140
+            sleep(0.1)
+            kit.servo[0].angle_position = 135
+            sleep(0.1)
+            kit.servo[0].angle_position = 130
+            sleep(1)
+            kit.servo[0].angle_position = 175
+            sleep(0.1)
+            kit.servo[0].angle_position = 170
+            sleep(0.1)
+            kit.servo[0].angle_position = 165
+            sleep(0.1)
+            kit.servo[0].angle_position = 160
+            sleep(0.1)
+            kit.servo[0].angle_position = 155
+            sleep(0.1)
+            kit.servo[0].angle_position = 150
+            sleep(0.1)
+            kit.servo[0].angle_position = 145
+            sleep(0.1)
+            kit.servo[0].angle_position = 140
+            sleep(0.1)
+            kit.servo[0].angle_position = 135
+            sleep(0.1)
+            kit.servo[0].angle_position = 130
+            sleep(1)
+            kit.servo[0].angle_position = 175
+            sleep(0.1)
+            kit.servo[0].angle_position = 170
+            sleep(0.1)
+            kit.servo[0].angle_position = 165
+            sleep(0.1)
+            kit.servo[0].angle_position = 160
+            sleep(0.1)
+            kit.servo[0].angle_position = 155
+            sleep(0.1)
+            kit.servo[0].angle_position = 150
+            sleep(0.1)
+            kit.servo[0].angle_position = 145
+            sleep(0.1)
+            kit.servo[0].angle_position = 140
+            sleep(0.1)
+            kit.servo[0].angle_position = 135
+            sleep(0.1)
+            kit.servo[0].angle_position = 130
+            L_saluer = [(0,82),(1,110),(2,45),(3,66),(4,86),(5,117)]
+            for i in L_saluer:
+                if i[0] == 1 or i[0] == 2:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 1750)
+                else:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse = 500, max_pulse = 2500)
+                kit.servo[i[0]].angle_position = i[1]
+            print(L_saluer)
             self.hemoragie_popup()
 
         if instance.text == "Saluer":
             sleep(3)
             L_saluer = [(0, 84), (1, 110), (2, 45), (3, 66), (4, 86), (5, 117)]
-            # for i in L_saluer:
-            #     if i[0] == 1 or i[0] == 2:
-            #         kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=1750)
-            #     else:
-            #         kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=2500)
-            #     kit.servo[i[0]].angle_position = i[1]
-            # print(L_saluer)
+            for i in L_saluer:
+                if i[0] == 1 or i[0] == 2:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=1750)
+                else:
+                    kit.servo[i[0]].set_pulse_width_range(min_pulse=500, max_pulse=2500)
+                kit.servo[i[0]].angle_position = i[1]
+            print(L_saluer)
 
             valeur_des_angles = ((0, 84), (1, 110), (2, 45), (3, 66), (4, 86), (5, 117))
 
 
         if instance.text == "Exploration":
             self.show_exploration_popup()
-            # sleep(4)
-            # kit.servo[0].angle_position = 90
-            # kit.servo[1].angle_position = 90 - theta1
-            # kit.servo[2].angle_position = theta2
-            # kit.servo[3].angle_position = theta3
-            # sleep(1)
-
-
-        if instance.text == "Détection d'objet":
-            sleep(2)
-            # kit.servo[0].angle_position = 0
-            # kit.servo[4].angle_position = 81
-            # kit.servo[5].angle_position = 70
-            # kit.servo[3].angle_position = 30
-            # kit.servo[1].angle_position = 50
-            # kit.servo[2].angle_position = 45
-            # kit.servo[1].angle_position = 33
-            # kit.servo[2].angle_position = 36
-            # sleep(1)
-            # kit.servo[1].angle_position = 20
-            # sleep(5)
-            # kit.servo[5].angle_position = 170
-
+            
         if instance.text == "Nettoyer plaie":
-            sleep(3)
-            # kit.servo[3].angle_position = 32
-            # sleep(2)
-            # kit.servo[1].angle_position = 84
-            # sleep(2)
-            # kit.servo[5].angle_ = 40
+            kit.servo[1].angle_position = (45,1)
+
 
         else:
             print(f"Button '{instance.text}' pressed")
@@ -268,7 +351,7 @@ class RobotInterfaceApp(App):
         popup.open()
 
     def hemoragie_popup(self):
-        content_text = "Hémorragie 60% ! SUIVRE INSTRUCTIONS !"
+        content_text = "Hémorragie 70% DEPASSE ! SUIVRE INSTRUCTIONS !"
         content = Label(text=content_text, font_size=16, halign='center', valign='middle')
 
         instructions_button = Button(text="Instructions", size_hint=(1, 0.2))
@@ -296,13 +379,15 @@ class RobotInterfaceApp(App):
             # Traiter les valeurs ici...
             retour = inverseKinematics(x_value, y_value, z_value)
             print(retour)
-            # sleep(4)
-            # kit.servo[0].angle_position = 90
-            # kit.servo[1].angle_position = retour(0)
-            # kit.servo[2].angle_position = retour(1)
-            # kit.servo[3].angle_position = retour(2)
-            # sleep(1)
-            # Fermer le popup
+            sleep(4)
+            kit.servo[0].angle_position = 90
+            kit.servo[1].angle_position = retour[0]
+            sleep(3)
+            kit.servo[2].angle_position = retour[1]
+            sleep(3)
+            kit.servo[3].angle_position = retour[2]
+            sleep(1)
+            #Fermer le popup
             popup.dismiss()
 
         # Création des widgets du popup
@@ -310,9 +395,9 @@ class RobotInterfaceApp(App):
         content.add_widget(Label(text="Vous êtes sur le point d'utiliser la cinématique inverse."))
         content.add_widget(Label(text="Veuillez entrer les valeurs X, Y et Z:"))
 
-        x_input = TextInput(multiline=False, hint_text="X")
-        y_input = TextInput(multiline=False, hint_text="Y")
-        z_input = TextInput(multiline=False, hint_text="Z")
+        x_input = TextInput(multiline=False, hint_text="X", write_tab=False)
+        y_input = TextInput(multiline=False, hint_text="Y", write_tab=False)
+        z_input = TextInput(multiline=False, hint_text="Z", write_tab=False)
 
         content.add_widget(x_input)
         content.add_widget(y_input)
@@ -336,12 +421,12 @@ class RobotInterfaceApp(App):
         lbl.text = f"{int(value)}°"
         # Assuming each slider corresponds to a servo (e.g., 0 to 4). Adjust the index as needed.
         servo_index = index  # Update this if you have a specific mapping of sliders to servos
-        # kit.servo[servo_index].angle = int(value)
+        kit.servo[servo_index].angle = int(value)
 
 
     def on_start(self):
-        self.camera_thread.start()
-
+        #self.camera_thread.start()
+        pass
     def on_stop(self):
         self.camera_thread.stop()
 
